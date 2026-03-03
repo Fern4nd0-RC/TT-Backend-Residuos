@@ -1,0 +1,12 @@
+### Obtener todos los perfiles
+GET http://localhost:5174/api/Perfil
+
+###
+
+### Crear un nuevo perfil
+POST http://localhost:5174/api/Perfil
+Content-Type: application/json
+
+{
+  "nombreJugador": "Fercho"
+}
