@@ -8,10 +8,14 @@ var builder = WebApplication.CreateBuilder(args);
 /*
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Pruebas de base de datos en memoria.
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseInMemoryDatabase("ResiduosDB_Memoria"));
 */
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseInMemoryDatabase("ResiduosDB_Memoria"));
+    options.UseSqlite("Data Source=datos_prueba.db"));
 
 // Soporte para documentar y probar la API (OpenAPI/Swagger)
 builder.Services.AddOpenApi();

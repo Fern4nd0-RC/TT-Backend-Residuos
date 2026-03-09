@@ -5,7 +5,7 @@
 namespace ResiduosBackend.Migrations
 {
     /// <inheritdoc />
-    public partial class MigracionInicial : Migration
+    public partial class InicialSqlite : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -14,11 +14,11 @@ namespace ResiduosBackend.Migrations
                 name: "Perfiles",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    NombreJugador = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Nivel = table.Column<int>(type: "int", nullable: false),
-                    FichasReciclaje = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    NombreJugador = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
+                    Nivel = table.Column<int>(type: "INTEGER", nullable: false),
+                    FichasReciclaje = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {

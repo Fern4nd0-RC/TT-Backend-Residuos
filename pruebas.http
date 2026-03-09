@@ -1,7 +1,8 @@
+### MI BOMBOOOOOOOOOOOOO
+
 ### Obtener todos los perfiles
 GET http://localhost:5174/api/Perfil
 
-###
 
 ### Crear un nuevo perfil
 POST http://localhost:5174/api/Perfil
@@ -9,4 +10,13 @@ Content-Type: application/json
 
 {
   "nombreJugador": "Fercho"
+}
+
+### Actualizar progreso del jugador (Simulando fin de partida)
+PUT http://localhost:5174/api/Perfil/2/progreso
+Content-Type: application/json
+
+{
+  "perfilId": 2,
+  "fichasGanadas": 450
 }
