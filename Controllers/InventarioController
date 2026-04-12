@@ -1,0 +1,49 @@
+using Microsoft.AspNetCore.Mvc;
+using ResiduosBackend.DTOs;
+using ResiduosBackend.Interfaces;
+
+namespace ResiduosBackend.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class InventarioController : ControllerBase
+    {
+        private readonly IInventarioService _inventarioService;
+
+        public InventarioController(IInventarioService inventarioService)
+        {
+            _inventarioService = inventarioService;
+        }
+
+        // GET: api/Inventario/perfil/5
+        [HttpGet("perfil/{perfilId}")]
+        public async Task<ActionResult<IEnumerable<InventarioDTO>>> GetInventarioDelJugador(int perfilId)
+        {
+            var inventario = await _inventarioService.ObtenerInventarioPorPerfilAsync(perfilId);
+            return Ok(inventario);
+        }
+
+        // POST: api/Inventario/agregar
+        [HttpPost("agregar")]
+        public async Task<ActionResult<InventarioDTO>> AgregarItem([FromQuery] int perfilId, [FromQuery] int itemId, [FromQuery] int cantidad)
+        {
+            if (cantidad <= 0) return BadRequest("La cantidad debe ser mayor a cero.");
+
+            var resultado = await _inventarioService.AgregarItemAsync(perfilId, itemId, cantidad);
+            return Ok(resultado);
+        }
+
+        // POST: api/Inventario/consumir
+        [HttpPost("consumir")]
+        public async Task<IActionResult> ConsumirItem([FromQuery] int perfilId, [FromQuery] int itemId, [FromQuery] int cantidad)
+        {
+            if (cantidad <= 0) return BadRequest("La cantidad debe ser mayor a cero.");
+
+            var exito = await _inventarioService.ConsumirItemAsync(perfilId, itemId, cantidad);
+            
+            if (!exito) return BadRequest("No se pudo consumir el ítem. Verifica que el jugador tenga suficiente cantidad.");
+
+            return Ok(new { mensaje = "Ítem consumido correctamente." });
+        }
+    }
+}

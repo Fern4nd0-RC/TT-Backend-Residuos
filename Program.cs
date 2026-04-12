@@ -1,38 +1,59 @@
 using Microsoft.EntityFrameworkCore;
 using ResiduosBackend.Data;
+using ResiduosBackend.Interfaces;
+using ResiduosBackend.Services;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // --- 1. CONFIGURACIÓN DE SERVICIOS ---
-// Agregamos la conexión a SQL Server
-/*
+
+// Obtenemos la cadena de conexión desde appsettings.json
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+// Registramos el contexto para usar SQL Server
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(connectionString));
 
-// Pruebas de base de datos en memoria.
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseInMemoryDatabase("ResiduosDB_Memoria"));
-*/
+// Habilitar CORS (Súper importante para que Unity pueda consumir la API sin bloqueos)
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowUnityApp", policy =>
+    {
+        policy.AllowAnyOrigin()    // En producción, cambia esto por la IP/Dominio de tu juego
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite("Data Source=datos_prueba.db"));
+builder.Services.AddScoped<IPerfilService, PerfilService>();
+builder.Services.AddScoped<IInventarioService, InventarioService>();
 
-// Soporte para documentar y probar la API (OpenAPI/Swagger)
-builder.Services.AddOpenApi();
-builder.Services.AddControllers();
+// Soporte para Controllers y evitar ciclos en el JSON
+builder.Services.AddControllers().AddJsonOptions(opciones =>
+{
+    opciones.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+});
 
-// --- 2. CONSTRUCCIÓN DE LA APP ---
-// Esto se ejecuta estrictamente UNA sola vez, después de agregar todos los servicios
+// Configuración de Swagger
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
 var app = builder.Build();
 
-// --- 3. PIPELINE DE PETICIONES HTTP ---
+// --- 2. PIPELINE DE PETICIONES HTTP ---
+
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
+
+// Aplicar la política de CORS que creamos arriba antes de mapear los controladores
+app.UseCors("AllowUnityApp"); 
+
 app.MapControllers();
 
-// Arrancamos el servidor
 app.Run();

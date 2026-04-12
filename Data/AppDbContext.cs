@@ -1,15 +1,17 @@
 using Microsoft.EntityFrameworkCore;
 using ResiduosBackend.Models;
 
-namespace ResiduosBackend.Data;
-
-public class AppDbContext : DbContext
+namespace ResiduosBackend.Data
 {
-    // Constructor que recibe las opciones de conexión
-    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
+    public class AppDbContext : DbContext
     {
-    }
+        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
-    // Aquí registramos nuestra clase Perfil como una tabla llamada "Perfiles"
-    public DbSet<Perfil> Perfiles { get; set; }
+        // Tus tablas en la base de datos
+        public DbSet<Perfil> Perfiles { get; set; }
+        public DbSet<Item> Items { get; set; }
+        public DbSet<Inventario> Inventarios { get; set; }
+        
+        // (Agrega las demás tablas como PartidaMetrica o EnciclopediaDesbloqueo cuando llegues a ellas)
+    }
 }

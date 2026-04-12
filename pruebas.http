@@ -1,22 +1,45 @@
-### MI BOMBOOOOOOOOOOOOO
+@url = http://0.0.0.0:5174/api
 
-### Obtener todos los perfiles
-GET http://localhost:5174/api/Perfil
+### ==========================================
+### MÓDULO DE PERFILES
+### ==========================================
 
-
-### Crear un nuevo perfil
-POST http://localhost:5174/api/Perfil
+### 1. Crear un nuevo jugador
+# Haz clic en "Send Request" justo arriba de esta línea
+POST {{url}}/Perfil
 Content-Type: application/json
 
 {
-  "nombreJugador": "Fercho"
+  "nombreUsuario": "Tarnished_01"
 }
 
-### Actualizar progreso del jugador (Simulando fin de partida)
-PUT http://localhost:5174/api/Perfil/2/progreso
-Content-Type: application/json
+###
 
-{
-  "perfilId": 2,
-  "fichasGanadas": 450
-}
+### 2. Ver todos los perfiles registrados
+GET {{url}}/Perfil
+
+###
+
+### 3. Ver un perfil específico (Cambia el 1 por el ID que te devolvió el POST)
+GET {{url}}/Perfil/1
+
+### ==========================================
+### MÓDULO DE INVENTARIO
+### ==========================================
+# Nota: Para probar esto, asumo que insertaste manualmente 
+# al menos un ítem en tu tabla 'Items' de SQL Server (ej. ID 1 = "Poción de Vida")
+
+### 4. Darle un objeto a un jugador
+# perfilId = 1, itemId = 1, cantidad = 5
+POST {{url}}/Inventario/agregar?perfilId=1&itemId=1&cantidad=5
+
+###
+
+### 5. Ver la mochila del jugador 1
+GET {{url}}/Inventario/perfil/1
+
+###
+
+### 6. Consumir un objeto de la mochila
+# El jugador 1 usa 2 unidades del ítem 1
+POST {{url}}/Inventario/consumir?perfilId=1&itemId=1&cantidad=2

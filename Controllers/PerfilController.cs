@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ResiduosBackend.Data;
+using ResiduosBackend.DTOs;
+using ResiduosBackend.Interfaces;
 using ResiduosBackend.Models;
 
 namespace ResiduosBackend.Controllers;
@@ -9,129 +9,61 @@ namespace ResiduosBackend.Controllers;
 [ApiController]
 public class PerfilController : ControllerBase
 {
-    private readonly AppDbContext _context;
-    public PerfilController(AppDbContext context)
+    private readonly IPerfilService _perfilService;
+
+    // ¡Adiós AppDbContext! Inyectamos solo el servicio
+    public PerfilController(IPerfilService perfilService)
     {
-        _context = context;
+        _perfilService = perfilService;
     }
 
-    // =========================================================
-    // 1. GET: api/Perfil
-    // Obtiene la lista de todos los perfiles registrados
-    // =========================================================
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Perfil>>> GetPerfiles()
+    public async Task<ActionResult<IEnumerable<PerfilDTO>>> GetPerfiles()
     {
-        return await _context.Perfiles.ToListAsync();
+        var perfiles = await _perfilService.ObtenerPerfilesAsync();
+        return Ok(perfiles);
     }
 
-    // =========================================================
-    // 2. POST: api/Perfil
-    // Crea un nuevo perfil de jugador
-    // Se utiliza cuando el usuario ingresa su nombre por primera vez
-    // =========================================================
     [HttpPost]
-    public async Task<ActionResult<Perfil>> CrearPerfil(Perfil perfil)
+    public async Task<ActionResult<PerfilDTO>> CrearPerfil(Perfil perfil)
     {
-        // Agrega el perfil a la base de datos
-        _context.Perfiles.Add(perfil);
-
-        // Guarda los cambios
-        await _context.SaveChangesAsync();
-
-        // Devuelve el perfil creado junto con la ruta para consultarlo
+        var perfilCreado = await _perfilService.CrearPerfilAsync(perfil);
+        
         return CreatedAtAction(
-            nameof(GetPerfiles),
-            new { id = perfil.Id },
-            perfil
+            nameof(GetPerfil),
+            new { id = perfilCreado.Id },
+            perfilCreado
         );
     }
 
-    // =========================================================
-    // 3. PUT: api/Perfil/{id}/progreso
-    // Actualiza el progreso del jugador después de un minijuego
-    // =========================================================
     [HttpPut("{id}/progreso")]
     public async Task<IActionResult> ActualizarProgreso(int id, PartidaResultado resultado)
     {
-        // Validar que el ID recibido coincida con el perfil del resultado
         if (id != resultado.PerfilId)
             return BadRequest("El ID del perfil no coincide.");
 
-        // Buscar el perfil en la base de datos
-        var perfil = await _context.Perfiles.FindAsync(id);
+        var perfilActualizado = await _perfilService.ActualizarProgresoAsync(id, resultado);
 
-        if (perfil == null)
+        if (perfilActualizado == null)
             return NotFound("Perfil no encontrado.");
 
-        // =====================================================
-        // Actualización del progreso
-        // =====================================================
-
-        // Sumamos las fichas obtenidas en la partida
-        perfil.FichasReciclaje += resultado.FichasGanadas;
-
-        // Calculamos el nuevo nivel con base en las fichas acumuladas
-        perfil.Nivel = CalcularNivelProgresivo(perfil.FichasReciclaje);
-
-        // Marcamos la entidad como modificada
-        _context.Entry(perfil).State = EntityState.Modified;
-
-        // Guardamos cambios en la base de datos
-        await _context.SaveChangesAsync();
-
-        // Respuesta de confirmación
+        // Mantenemos la estructura JSON que tenías originalmente para Unity
         return Ok(new
         {
             mensaje = "Progreso actualizado",
-            nivelActual = perfil.Nivel,
-            fichasTotales = perfil.FichasReciclaje
+            nivelActual = perfilActualizado.Nivel,
+            fichasTotales = perfilActualizado.Monedas
         });
     }
 
-    // =========================================================
-    // 4. Endpoint GET por ID: 
-    // Para hacer el "Login" o cargar la partida seleccionada
-    // =========================================================
     [HttpGet("{id}")]
-    public async Task<ActionResult<Perfil>> GetPerfil(int id)
+    public async Task<ActionResult<PerfilDTO>> GetPerfil(int id)
     {
-        // Buscamos en la base de datos el perfil que coincida con el ID que manda Unity
-        var perfil = await _context.Perfiles.FindAsync(id);
+        var perfil = await _perfilService.ObtenerPerfilAsync(id);
 
         if (perfil == null)
-        {
             return NotFound("No se encontró el perfil de este jugador.");
-        }
 
-        // Si lo encuentra, devuelve todos los datos (Nivel, Fichas, Nombre)
-        return perfil;
-    }
-
-    // =========================================================
-    // MÉTODO AUXILIAR
-    // Calcula el nivel del jugador según sus fichas acumuladas
-    // usando una curva progresiva de dificultad
-    // =========================================================
-    private int CalcularNivelProgresivo(int fichasTotales)
-    {
-        int nivelActual = 1;
-
-        // Fichas necesarias para pasar del nivel 1 al 2
-        int costoSiguienteNivel = 100;
-
-        // Total acumulado requerido para subir de nivel
-        int fichasAcumuladasRequeridas = costoSiguienteNivel;
-
-        // Mientras el jugador tenga fichas suficientes
-        // y no supere el nivel máximo (30)
-        while (fichasTotales >= fichasAcumuladasRequeridas && nivelActual < 30)
-        {
-            nivelActual++;
-            costoSiguienteNivel += 50;
-            fichasAcumuladasRequeridas += costoSiguienteNivel;
-        }
-
-        return nivelActual;
+        return Ok(perfil);
     }
 }
