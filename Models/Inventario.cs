@@ -3,27 +3,32 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ResiduosBackend.Models;
 
+/// <summary>
+/// Una fila de inventario por par (perfil, ítem); la cantidad apila unidades sin duplicar la clave compuesta lógica.
+/// </summary>
 public class Inventario
 {
+    /// <summary>Identificador de la fila de inventario.</summary>
     [Key]
-    public int Id { get; set; } // El ID único de este registro o "espacio en la mochila"
+    public int Id { get; set; }
 
+    /// <summary>Perfil propietario.</summary>
     [Required]
-    public int PerfilId { get; set; } // ¿De quién es la mochila?
+    public int PerfilId { get; set; }
 
+    /// <summary>Ítem almacenado.</summary>
     [Required]
-    public int ItemId { get; set; } // ¿Qué objeto hay en este espacio?
+    public int ItemId { get; set; }
 
+    /// <summary>Unidades disponibles en esta fila.</summary>
     [Required]
-    public int Cantidad { get; set; } = 1; // ¿Cuántos hay apilados?
+    public int Cantidad { get; set; } = 1;
 
-    // --- PROPIEDADES DE NAVEGACIÓN ---
-    // Esto es lo que permite que el `_context.Inventarios.Include(i => i.Item)` funcione en tu Servicio.
-    // Le dicen a Entity Framework: "Oye, cuando traigas un registro de inventario, tráete también todos los datos del Perfil y del Item asociado".
-
+    /// <summary>Navegación al perfil; habilita consultas con <c>Include</c> en EF Core.</summary>
     [ForeignKey("PerfilId")]
     public Perfil? Perfil { get; set; }
 
+    /// <summary>Navegación al ítem; necesaria para validar tipo y texto al mapear a DTO.</summary>
     [ForeignKey("ItemId")]
     public Item? Item { get; set; }
 }

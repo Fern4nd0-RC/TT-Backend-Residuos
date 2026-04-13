@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ResiduosBackend.Data;
 
@@ -11,9 +12,11 @@ using ResiduosBackend.Data;
 namespace ResiduosBackend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260412230237_AgregarCamposResiduoYConfigurarEnciclopedia")]
+    partial class AgregarCamposResiduoYConfigurarEnciclopedia
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -107,33 +110,6 @@ namespace ResiduosBackend.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Items");
-                });
-
-            modelBuilder.Entity("ResiduosBackend.Models.PartidaMetrica", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("FechaPartida")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("PerfilId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PuntuacionObtenida")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ResiduosClasificadosCorrectamente")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PerfilId");
-
-                    b.ToTable("PartidaMetricas");
                 });
 
             modelBuilder.Entity("ResiduosBackend.Models.Perfil", b =>
@@ -246,17 +222,6 @@ namespace ResiduosBackend.Migrations
                         .IsRequired();
 
                     b.Navigation("Item");
-
-                    b.Navigation("Perfil");
-                });
-
-            modelBuilder.Entity("ResiduosBackend.Models.PartidaMetrica", b =>
-                {
-                    b.HasOne("ResiduosBackend.Models.Perfil", "Perfil")
-                        .WithMany()
-                        .HasForeignKey("PerfilId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
 
                     b.Navigation("Perfil");
                 });

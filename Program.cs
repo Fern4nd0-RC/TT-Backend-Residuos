@@ -6,21 +6,22 @@ using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// --- 1. CONFIGURACIÓN DE SERVICIOS ---
-
-// Obtenemos la cadena de conexión desde appsettings.json
+// Configuración de servicios y cadena de conexión definida en appsettings (MariaDB).
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-// Registramos el contexto para usar SQL Server
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(connectionString));
+    options.UseMySql(
+        connectionString,
+        ServerVersion.AutoDetect(connectionString)
+    )
+);
 
-// Habilitar CORS (Súper importante para que Unity pueda consumir la API sin bloqueos)
+// CORS: el cliente Unity suele originar peticiones desde otro origen; sin esta política el navegador bloquearía las respuestas.
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowUnityApp", policy =>
     {
-        policy.AllowAnyOrigin()    // En producción, cambia esto por la IP/Dominio de tu juego
+        policy.AllowAnyOrigin()
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
@@ -28,20 +29,20 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddScoped<IPerfilService, PerfilService>();
 builder.Services.AddScoped<IInventarioService, InventarioService>();
+builder.Services.AddScoped<ITiendaService, TiendaService>();
+builder.Services.AddScoped<IEnciclopediaService, EnciclopediaService>();
+builder.Services.AddScoped<IPartidaService, PartidaService>();
 
-// Soporte para Controllers y evitar ciclos en el JSON
+// ReferenceHandler.IgnoreCycles evita fallos de serialización cuando una entidad se serializa con navegaciones circulares (p. ej. Perfil ↔ Inventario).
 builder.Services.AddControllers().AddJsonOptions(opciones =>
 {
     opciones.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
 });
 
-// Configuración de Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
-
-// --- 2. PIPELINE DE PETICIONES HTTP ---
 
 if (app.Environment.IsDevelopment())
 {
@@ -51,8 +52,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// Aplicar la política de CORS que creamos arriba antes de mapear los controladores
-app.UseCors("AllowUnityApp"); 
+// La política CORS debe ejecutarse antes de MapControllers para que aplique a todas las rutas de la API.
+app.UseCors("AllowUnityApp");
 
 app.MapControllers();
 

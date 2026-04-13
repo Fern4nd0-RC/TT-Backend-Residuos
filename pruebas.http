@@ -1,45 +1,127 @@
 @url = http://0.0.0.0:5174/api
 
 ### ==========================================
-### MÓDULO DE PERFILES
+### 1. MÓDULO DE PERFILES (PerfilController)
 ### ==========================================
 
-### 1. Crear un nuevo jugador
-# Haz clic en "Send Request" justo arriba de esta línea
+### Crear un nuevo jugador (Respeta RN-201: máx 4 perfiles)
 POST {{url}}/Perfil
 Content-Type: application/json
 
 {
-  "nombreUsuario": "Tarnished_01"
+  "NombreUsuario": "Tarnished_05" 
 }
 
-###
-
-### 2. Ver todos los perfiles registrados
+### Ver todos los perfiles registrados (Para la pantalla de selección)
 GET {{url}}/Perfil
 
-###
-
-### 3. Ver un perfil específico (Cambia el 1 por el ID que te devolvió el POST)
+### Ver un perfil específico (Carga progreso, inventario, etc.)
 GET {{url}}/Perfil/1
 
+### Guardado automático (minijuego / progreso — RN-704)
+### Propiedades JSON en camelCase: deben coincidir con ActualizarProgresoDTO (xpGanado, fichasGanadas, estrellasGanadas).
+PUT {{url}}/Perfil/2/progreso
+Content-Type: application/json
+
+{
+  "perfilId": 2,
+  "xpGanado": 150,
+  "fichasGanadas": 50,
+  "estrellasGanadas": 1
+}
+
+### Eliminar un perfil (RN-202)
+DELETE {{url}}/Perfil/4
+
+
 ### ==========================================
-### MÓDULO DE INVENTARIO
+### 2. MÓDULO DE INVENTARIO (InventarioController)
 ### ==========================================
-# Nota: Para probar esto, asumo que insertaste manualmente 
-# al menos un ítem en tu tabla 'Items' de SQL Server (ej. ID 1 = "Poción de Vida")
 
-### 4. Darle un objeto a un jugador
-# perfilId = 1, itemId = 1, cantidad = 5
-POST {{url}}/Inventario/agregar?perfilId=1&itemId=1&cantidad=5
-
-###
-
-### 5. Ver la mochila del jugador 1
+### Ver la mochila de un jugador
 GET {{url}}/Inventario/perfil/1
 
-###
+### Darle un objeto a un jugador (Actualizado a [FromBody])
+POST {{url}}/Inventario/agregar
+Content-Type: application/json
 
-### 6. Consumir un objeto de la mochila
-# El jugador 1 usa 2 unidades del ítem 1
-POST {{url}}/Inventario/consumir?perfilId=1&itemId=1&cantidad=2
+{
+  "perfilId": 1,
+  "itemId": 1,
+  "cantidad": 5
+}
+
+### Consumir un objeto de la mochila (Actualizado a [FromBody])
+POST {{url}}/Inventario/consumir
+Content-Type: application/json
+
+{
+  "perfilId": 1,
+  "itemId": 1,
+  "cantidad": 1
+}
+
+
+### ==========================================
+### 3. MÓDULO DE TIENDA (TiendaController)
+### ==========================================
+
+### Ver catálogo de la tienda para un jugador (Calcula si le alcanza, nivel, etc.)
+GET {{url}}/Tienda/catalogo/1
+
+### Comprar un ítem en la tienda (Valida nivel E3, posesión E2 y fondos E1)
+POST {{url}}/Tienda/comprar
+Content-Type: application/json
+
+{
+  "perfilId": 1,
+  "itemId": 1
+}
+
+
+### ==========================================
+### 4. MÓDULO DE ENCICLOPEDIA (EnciclopediaController)
+### ==========================================
+
+### Ver todo el catálogo de la enciclopedia (Con '' para bloqueados)
+GET {{url}}/Enciclopedia/catalogo/1
+
+### Ver el detalle de un residuo desbloqueado (Devuelve 403 Forbidden si está bloqueado)
+GET {{url}}/Enciclopedia/detalle/1/5
+
+### Desbloquear un nuevo residuo
+POST {{url}}/Enciclopedia/desbloquear
+Content-Type: application/json
+
+{
+  "perfilId": 1,
+  "id": 5
+}
+
+
+### ==========================================
+### 5. MÓDULO DE PARTIDA (PartidaController)
+### ==========================================
+
+### Finalizar partida o minijuego (Recibe los resultados de todos los jugadores)
+POST {{url}}/Partida/finalizar
+Content-Type: application/json
+
+{
+  "resultadosJugadores": [
+    {
+      "perfilId": 1,
+      "fichasGanadas": 100,
+      "xpGanado": 120,
+      "puntuacionObtenida": 500,
+      "residuosClasificadosCorrectamente": 15
+    },
+    {
+      "perfilId": 2,
+      "fichasGanadas": 75,
+      "xpGanado": 90,
+      "puntuacionObtenida": 400,
+      "residuosClasificadosCorrectamente": 12
+    }
+  ]
+}

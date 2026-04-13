@@ -1,97 +1,106 @@
 using Microsoft.EntityFrameworkCore;
 using ResiduosBackend.Data;
-using ResiduosBackend.DTOs;
+using ResiduosBackend.DTO;
 using ResiduosBackend.Interfaces;
-using ResiduosBackend.Models; // Ajusta según tu namespace de modelos
+using ResiduosBackend.Models;
 
 namespace ResiduosBackend.Services
 {
+    /// <summary>
+    /// Operaciones de inventario: listado, apilado al agregar y consumo solo de ítems de juego (RN-702).
+    /// </summary>
     public class InventarioService : IInventarioService
     {
         private readonly AppDbContext _context;
 
+        /// <summary>
+        /// Crea el servicio con el contexto de datos inyectado.
+        /// </summary>
         public InventarioService(AppDbContext context)
         {
             _context = context;
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<InventarioDTO>> ObtenerInventarioPorPerfilAsync(int perfilId)
         {
-            // Buscamos los registros y usamos Include para traer los datos del Item real
             var inventario = await _context.Inventarios
-                .Include(i => i.Item) // Asumiendo que tienes una propiedad de navegación llamada Item
+                .Include(i => i.Item)
                 .Where(i => i.PerfilId == perfilId)
                 .ToListAsync();
 
-            return inventario.Select(i => new InventarioDTO
-            {
-                IdRegistro = i.Id,
-                ItemId = i.ItemId,
-                NombreItem = i.Item.Nombre, // Ajusta a la propiedad real de tu modelo Item
-                Cantidad = i.Cantidad
-            });
+            return inventario.Select(MapearADTO);
         }
 
-        public async Task<InventarioDTO> AgregarItemAsync(int perfilId, int itemId, int cantidadAgregada)
+        /// <inheritdoc />
+        public async Task<InventarioDTO> AgregarItemAsync(AgregarItemDTO dto)
         {
-            // 1. Verificamos si el jugador ya tiene este ítem en su inventario
+            var perfilExiste = await _context.Perfiles.AnyAsync(p => p.Id == dto.PerfilId);
+            if (!perfilExiste)
+                throw new KeyNotFoundException($"No se encontró el perfil con ID {dto.PerfilId}.");
+
+            var itemExiste = await _context.Items.AnyAsync(i => i.Id == dto.ItemId);
+            if (!itemExiste)
+                throw new KeyNotFoundException($"No se encontró el ítem con ID {dto.ItemId}.");
+
             var registroExistente = await _context.Inventarios
-                .FirstOrDefaultAsync(i => i.PerfilId == perfilId && i.ItemId == itemId);
+                .Include(i => i.Item)
+                .FirstOrDefaultAsync(i => i.PerfilId == dto.PerfilId && i.ItemId == dto.ItemId);
 
             if (registroExistente != null)
             {
-                // Si ya lo tiene, solo apilamos la cantidad
-                registroExistente.Cantidad += cantidadAgregada;
+                registroExistente.Cantidad += dto.Cantidad;
                 _context.Entry(registroExistente).State = EntityState.Modified;
-            }
-            else
-            {
-                // Si es un ítem nuevo, creamos el registro
-                registroExistente = new Inventario // Ajusta a tu clase real de Inventario
-                {
-                    PerfilId = perfilId,
-                    ItemId = itemId,
-                    Cantidad = cantidadAgregada
-                };
-                _context.Inventarios.Add(registroExistente);
+                await _context.SaveChangesAsync();
+                return MapearADTO(registroExistente);
             }
 
+            var nuevoRegistro = new Inventario
+            {
+                PerfilId = dto.PerfilId,
+                ItemId = dto.ItemId,
+                Cantidad = dto.Cantidad
+            };
+            _context.Inventarios.Add(nuevoRegistro);
             await _context.SaveChangesAsync();
 
-            // Para devolver el DTO correctamente, necesitamos el nombre del ítem
-            var itemAsociado = await _context.Items.FindAsync(itemId);
+            await _context.Entry(nuevoRegistro).Reference(i => i.Item).LoadAsync();
 
-            return new InventarioDTO
-            {
-                IdRegistro = registroExistente.Id,
-                ItemId = registroExistente.ItemId,
-                NombreItem = itemAsociado?.Nombre ?? "Ítem Desconocido",
-                Cantidad = registroExistente.Cantidad
-            };
+            return MapearADTO(nuevoRegistro);
         }
 
-        public async Task<bool> ConsumirItemAsync(int perfilId, int itemId, int cantidadUsada)
+        /// <inheritdoc />
+        public async Task<bool> ConsumirItemAsync(ConsumirItemDTO dto)
         {
             var registro = await _context.Inventarios
-                .FirstOrDefaultAsync(i => i.PerfilId == perfilId && i.ItemId == itemId);
+                .Include(i => i.Item)
+                .FirstOrDefaultAsync(i => i.PerfilId == dto.PerfilId && i.ItemId == dto.ItemId);
 
-            // Si no lo tiene, o la cantidad que quiere usar es mayor a la que posee, falla
-            if (registro == null || registro.Cantidad < cantidadUsada) return false;
+            if (registro == null) return false;
 
-            registro.Cantidad -= cantidadUsada;
+            if (registro.Item?.Tipo == "Cosmetico")
+                return false;
 
-            // Si la cantidad llega a 0, limpiamos ese espacio del inventario para ahorrar espacio en BD
+            if (registro.Cantidad < dto.Cantidad) return false;
+
+            registro.Cantidad -= dto.Cantidad;
+
             if (registro.Cantidad <= 0)
-            {
                 _context.Inventarios.Remove(registro);
-            }
             else
-            {
                 _context.Entry(registro).State = EntityState.Modified;
-            }
 
             await _context.SaveChangesAsync();
             return true;
         }
+
+        private static InventarioDTO MapearADTO(Inventario i) => new InventarioDTO
+        {
+            Id = i.Id,
+            ItemId = i.ItemId,
+            Nombre = i.Item?.Nombre ?? "Ítem Desconocido",
+            Tipo = i.Item?.Tipo ?? "Desconocido",
+            Cantidad = i.Cantidad
+        };
     }
 }

@@ -12,18 +12,18 @@ using ResiduosBackend.Data;
 namespace ResiduosBackend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260412033845_InicialSqlServer")]
-    partial class InicialSqlServer
+    [Migration("20260412232517_AgregarPartidaMetricas")]
+    partial class AgregarPartidaMetricas
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.5")
-                .HasAnnotation("Relational:MaxIdentifierLength", 128);
+                .HasAnnotation("ProductVersion", "9.0.0")
+                .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
-            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+            MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
             modelBuilder.Entity("ResiduosBackend.Models.EnciclopediaDesbloqueo", b =>
                 {
@@ -34,7 +34,7 @@ namespace ResiduosBackend.Migrations
                         .HasColumnType("int");
 
                     b.Property<DateTime>("FechaDesbloqueo")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime(6)");
 
                     b.HasKey("PerfilId", "ResiduoId");
 
@@ -45,18 +45,27 @@ namespace ResiduosBackend.Migrations
 
             modelBuilder.Entity("ResiduosBackend.Models.Inventario", b =>
                 {
-                    b.Property<int>("PerfilId")
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Cantidad")
                         .HasColumnType("int");
 
                     b.Property<int>("ItemId")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("FechaCompra")
-                        .HasColumnType("datetime2");
+                    b.Property<int>("PerfilId")
+                        .HasColumnType("int");
 
-                    b.HasKey("PerfilId", "ItemId");
+                    b.HasKey("Id");
 
                     b.HasIndex("ItemId");
+
+                    b.HasIndex("PerfilId", "ItemId")
+                        .IsUnique();
 
                     b.ToTable("Inventarios");
                 });
@@ -67,18 +76,36 @@ namespace ResiduosBackend.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("Costo")
+                    b.Property<int>("CostoEstrellas")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CostoFichas")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Descripcion")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("varchar(250)");
+
+                    b.Property<int>("NivelDesbloqueo")
                         .HasColumnType("int");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("NombreSprite")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
 
                     b.Property<string>("Tipo")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
 
                     b.HasKey("Id");
 
@@ -91,10 +118,10 @@ namespace ResiduosBackend.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("FechaPartida")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<int>("PerfilId")
                         .HasColumnType("int");
@@ -109,7 +136,7 @@ namespace ResiduosBackend.Migrations
 
                     b.HasIndex("PerfilId");
 
-                    b.ToTable("PartidasMetricas");
+                    b.ToTable("PartidaMetricas");
                 });
 
             modelBuilder.Entity("ResiduosBackend.Models.Perfil", b =>
@@ -118,21 +145,27 @@ namespace ResiduosBackend.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("EstrellaSostenibilidad")
+                        .HasColumnType("int");
 
                     b.Property<int>("Experiencia")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("FechaCreacion")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<int>("Monedas")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Nivel")
                         .HasColumnType("int");
 
                     b.Property<string>("NombreUsuario")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("varchar(50)");
 
                     b.HasKey("Id");
 
@@ -145,15 +178,37 @@ namespace ResiduosBackend.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Categoria")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("DatoCurioso")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("varchar(300)");
+
+                    b.Property<string>("DescripcionParaNinos")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("varchar(300)");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("NombreSprite")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("Subcategoria")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
 
                     b.HasKey("Id");
 
@@ -169,9 +224,9 @@ namespace ResiduosBackend.Migrations
                         .IsRequired();
 
                     b.HasOne("ResiduosBackend.Models.Residuo", "Residuo")
-                        .WithMany()
+                        .WithMany("Desbloqueos")
                         .HasForeignKey("ResiduoId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Perfil");
@@ -182,7 +237,7 @@ namespace ResiduosBackend.Migrations
             modelBuilder.Entity("ResiduosBackend.Models.Inventario", b =>
                 {
                     b.HasOne("ResiduosBackend.Models.Item", "Item")
-                        .WithMany()
+                        .WithMany("Inventarios")
                         .HasForeignKey("ItemId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -209,9 +264,19 @@ namespace ResiduosBackend.Migrations
                     b.Navigation("Perfil");
                 });
 
+            modelBuilder.Entity("ResiduosBackend.Models.Item", b =>
+                {
+                    b.Navigation("Inventarios");
+                });
+
             modelBuilder.Entity("ResiduosBackend.Models.Perfil", b =>
                 {
                     b.Navigation("Inventarios");
+                });
+
+            modelBuilder.Entity("ResiduosBackend.Models.Residuo", b =>
+                {
+                    b.Navigation("Desbloqueos");
                 });
 #pragma warning restore 612, 618
         }

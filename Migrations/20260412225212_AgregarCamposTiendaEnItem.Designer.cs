@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ResiduosBackend.Data;
 
@@ -11,9 +12,11 @@ using ResiduosBackend.Data;
 namespace ResiduosBackend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260412225212_AgregarCamposTiendaEnItem")]
+    partial class AgregarCamposTiendaEnItem
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,24 +24,6 @@ namespace ResiduosBackend.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
-
-            modelBuilder.Entity("ResiduosBackend.Models.EnciclopediaDesbloqueo", b =>
-                {
-                    b.Property<int>("PerfilId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ResiduoId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("FechaDesbloqueo")
-                        .HasColumnType("datetime(6)");
-
-                    b.HasKey("PerfilId", "ResiduoId");
-
-                    b.HasIndex("ResiduoId");
-
-                    b.ToTable("EnciclopediaDesbloqueos");
-                });
 
             modelBuilder.Entity("ResiduosBackend.Models.Inventario", b =>
                 {
@@ -61,8 +46,7 @@ namespace ResiduosBackend.Migrations
 
                     b.HasIndex("ItemId");
 
-                    b.HasIndex("PerfilId", "ItemId")
-                        .IsUnique();
+                    b.HasIndex("PerfilId");
 
                     b.ToTable("Inventarios");
                 });
@@ -109,33 +93,6 @@ namespace ResiduosBackend.Migrations
                     b.ToTable("Items");
                 });
 
-            modelBuilder.Entity("ResiduosBackend.Models.PartidaMetrica", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("FechaPartida")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("PerfilId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PuntuacionObtenida")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ResiduosClasificadosCorrectamente")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PerfilId");
-
-                    b.ToTable("PartidaMetricas");
-                });
-
             modelBuilder.Entity("ResiduosBackend.Models.Perfil", b =>
                 {
                     b.Property<int>("Id")
@@ -169,68 +126,6 @@ namespace ResiduosBackend.Migrations
                     b.ToTable("Perfiles");
                 });
 
-            modelBuilder.Entity("ResiduosBackend.Models.Residuo", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Categoria")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
-
-                    b.Property<string>("DatoCurioso")
-                        .IsRequired()
-                        .HasMaxLength(300)
-                        .HasColumnType("varchar(300)");
-
-                    b.Property<string>("DescripcionParaNinos")
-                        .IsRequired()
-                        .HasMaxLength(300)
-                        .HasColumnType("varchar(300)");
-
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
-
-                    b.Property<string>("NombreSprite")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
-
-                    b.Property<string>("Subcategoria")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Residuos");
-                });
-
-            modelBuilder.Entity("ResiduosBackend.Models.EnciclopediaDesbloqueo", b =>
-                {
-                    b.HasOne("ResiduosBackend.Models.Perfil", "Perfil")
-                        .WithMany()
-                        .HasForeignKey("PerfilId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ResiduosBackend.Models.Residuo", "Residuo")
-                        .WithMany("Desbloqueos")
-                        .HasForeignKey("ResiduoId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Perfil");
-
-                    b.Navigation("Residuo");
-                });
-
             modelBuilder.Entity("ResiduosBackend.Models.Inventario", b =>
                 {
                     b.HasOne("ResiduosBackend.Models.Item", "Item")
@@ -250,17 +145,6 @@ namespace ResiduosBackend.Migrations
                     b.Navigation("Perfil");
                 });
 
-            modelBuilder.Entity("ResiduosBackend.Models.PartidaMetrica", b =>
-                {
-                    b.HasOne("ResiduosBackend.Models.Perfil", "Perfil")
-                        .WithMany()
-                        .HasForeignKey("PerfilId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Perfil");
-                });
-
             modelBuilder.Entity("ResiduosBackend.Models.Item", b =>
                 {
                     b.Navigation("Inventarios");
@@ -269,11 +153,6 @@ namespace ResiduosBackend.Migrations
             modelBuilder.Entity("ResiduosBackend.Models.Perfil", b =>
                 {
                     b.Navigation("Inventarios");
-                });
-
-            modelBuilder.Entity("ResiduosBackend.Models.Residuo", b =>
-                {
-                    b.Navigation("Desbloqueos");
                 });
 #pragma warning restore 612, 618
         }
