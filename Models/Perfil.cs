@@ -33,4 +33,7 @@ public class Perfil
 
     /// <summary>Filas de inventario asociadas a este perfil.</summary>
     public ICollection<Inventario>? Inventarios { get; set; }
+
+    /// <summary>Insignias desbloqueadas por el perfil.</summary>
+    public ICollection<PerfilLogro>? LogrosDesbloqueados { get; set; }
 }

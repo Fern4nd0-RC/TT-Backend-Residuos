@@ -20,6 +20,12 @@ public class PartidaMetrica
     /// <summary>Residuos clasificados correctamente en la sesión.</summary>
     public int ResiduosClasificadosCorrectamente { get; set; }
 
+    /// <summary>Total de clasificaciones correctas de residuos orgánicos.</summary>
+    public int ResiduosOrganicosClasificados { get; set; }
+
+    /// <summary>Total de clasificaciones correctas de residuos inorgánicos.</summary>
+    public int ResiduosInorganicosClasificados { get; set; }
+
     /// <summary>Marca temporal de la partida en UTC.</summary>
     public DateTime FechaPartida { get; set; } = DateTime.UtcNow;
 

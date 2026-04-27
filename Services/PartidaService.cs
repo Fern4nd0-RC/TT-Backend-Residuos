@@ -12,13 +12,15 @@ namespace ResiduosBackend.Services
     public class PartidaService : IPartidaService
     {
         private readonly AppDbContext _context;
+        private readonly ILogroService _logroService;
 
         /// <summary>
         /// Crea el servicio con el contexto de datos inyectado.
         /// </summary>
-        public PartidaService(AppDbContext context)
+        public PartidaService(AppDbContext context, ILogroService logroService)
         {
             _context = context;
+            _logroService = logroService;
         }
 
         /// <inheritdoc />
@@ -42,10 +44,13 @@ namespace ResiduosBackend.Services
                             PerfilId = resultado.PerfilId,
                             PuntuacionObtenida = resultado.PuntuacionObtenida,
                             ResiduosClasificadosCorrectamente = resultado.ResiduosClasificadosCorrectamente,
+                            ResiduosOrganicosClasificados = resultado.ResiduosOrganicosClasificados,
+                            ResiduosInorganicosClasificados = resultado.ResiduosInorganicosClasificados,
                             FechaPartida = DateTime.UtcNow
                         };
 
                         _context.PartidaMetricas.Add(metrica);
+                        await _logroService.VerificarYDesbloquearLogrosAsync(resultado.PerfilId, guardarCambios: false);
                     }
                 }
 

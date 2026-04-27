@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using ResiduosBackend.DTO;
 using ResiduosBackend.Interfaces;
 
@@ -35,6 +36,7 @@ namespace ResiduosBackend.Controllers
         /// Agrega cantidad a un ítem o crea la fila de inventario (recompensas, tienda, etc.).
         /// </summary>
         [HttpPost("agregar")]
+        [Authorize]
         public async Task<ActionResult<InventarioDTO>> AgregarItem([FromBody] AgregarItemDTO dto)
         {
             if (dto.Cantidad <= 0)
@@ -55,6 +57,7 @@ namespace ResiduosBackend.Controllers
         /// Reduce la cantidad de un ítem de tipo <c>ObjetoDeJuego</c>. Los cosméticos no son consumibles (RN-702).
         /// </summary>
         [HttpPost("consumir")]
+        [Authorize]
         public async Task<IActionResult> ConsumirItem([FromBody] ConsumirItemDTO dto)
         {
             if (dto.Cantidad <= 0)

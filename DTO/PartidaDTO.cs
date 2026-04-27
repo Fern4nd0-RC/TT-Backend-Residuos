@@ -28,5 +28,11 @@ namespace ResiduosBackend.DTO
 
         /// <summary>Conteo de aciertos de clasificación persistido en métricas.</summary>
         public int ResiduosClasificadosCorrectamente { get; set; }
+
+        /// <summary>Conteo de aciertos de residuos orgánicos (opcional para retrocompatibilidad).</summary>
+        public int ResiduosOrganicosClasificados { get; set; } = 0;
+
+        /// <summary>Conteo de aciertos de residuos inorgánicos (opcional para retrocompatibilidad).</summary>
+        public int ResiduosInorganicosClasificados { get; set; } = 0;
     }
 }

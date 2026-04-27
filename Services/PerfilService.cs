@@ -12,15 +12,17 @@ namespace ResiduosBackend.Services
     public class PerfilService : IPerfilService
     {
         private readonly AppDbContext _context;
+        private readonly ILogroService _logroService;
 
         private const int MaxPerfiles = 4;
 
         /// <summary>
         /// Crea el servicio con el contexto de datos inyectado.
         /// </summary>
-        public PerfilService(AppDbContext context)
+        public PerfilService(AppDbContext context, ILogroService logroService)
         {
             _context = context;
+            _logroService = logroService;
         }
 
         /// <inheritdoc />
@@ -75,6 +77,7 @@ namespace ResiduosBackend.Services
 
             _context.Entry(perfil).State = EntityState.Modified;
             await _context.SaveChangesAsync();
+            await _logroService.VerificarYDesbloquearLogrosAsync(id);
 
             return MapearADTO(perfil);
         }

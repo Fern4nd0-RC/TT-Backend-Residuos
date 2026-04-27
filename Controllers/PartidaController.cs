@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using ResiduosBackend.DTO;
 using ResiduosBackend.Interfaces;
 
@@ -25,11 +26,22 @@ namespace ResiduosBackend.Controllers
         /// Procesa los resultados de uno o varios jugadores: acumula fichas y guarda métricas por partida.
         /// </summary>
         [HttpPost("finalizar")]
+        [Authorize]
         public async Task<IActionResult> FinalizarPartida([FromBody] FinalizarPartidaRequestDTO request)
         {
             if (request == null || !request.ResultadosJugadores.Any())
             {
                 return BadRequest("No se enviaron resultados válidos.");
+            }
+            if (request.ResultadosJugadores.Any(r =>
+                    r.XpGanado < 0 ||
+                    r.FichasGanadas < 0 ||
+                    r.PuntuacionObtenida < 0 ||
+                    r.ResiduosClasificadosCorrectamente < 0 ||
+                    r.ResiduosOrganicosClasificados < 0 ||
+                    r.ResiduosInorganicosClasificados < 0))
+            {
+                return BadRequest(new { mensaje = "No se aceptan métricas negativas en resultados de partida." });
             }
 
             var exito = await _partidaService.ProcesarResultadosPartidaAsync(request);

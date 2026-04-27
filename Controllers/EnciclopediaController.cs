@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using ResiduosBackend.DTO;
 using ResiduosBackend.Interfaces;
 
@@ -63,6 +64,7 @@ namespace ResiduosBackend.Controllers
         /// Registra el desbloqueo al clasificar correctamente; si ya existía, el servicio indica <c>EsNuevoDesbloqueo = false</c> (CU-04 A3).
         /// </summary>
         [HttpPost("desbloquear")]
+        [Authorize]
         public async Task<ActionResult<DesbloqueoResultadoDTO>> DesbloquearResiduo(
             [FromBody] DesbloquearResiduoDTO dto)
         {

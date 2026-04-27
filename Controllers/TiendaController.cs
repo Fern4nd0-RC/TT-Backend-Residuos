@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using ResiduosBackend.DTO;
 using ResiduosBackend.Interfaces;
 
@@ -42,6 +43,7 @@ namespace ResiduosBackend.Controllers
         /// Ejecuta la compra con validación de nivel, posesión previa y saldo (fichas o estrellas).
         /// </summary>
         [HttpPost("comprar")]
+        [Authorize]
         public async Task<ActionResult<CompraResultadoDTO>> ComprarItem([FromBody] ComprarItemDTO dto)
         {
             try

@@ -31,6 +31,12 @@ namespace ResiduosBackend.Data
         /// <summary>Métricas históricas por partida finalizada.</summary>
         public DbSet<PartidaMetrica> PartidaMetricas { get; set; }
 
+        /// <summary>Catálogo de insignias desbloqueables.</summary>
+        public DbSet<Logro> Logros { get; set; }
+
+        /// <summary>Relación perfil–logro desbloqueado.</summary>
+        public DbSet<PerfilLogro> PerfilLogros { get; set; }
+
         /// <inheritdoc />
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -56,6 +62,48 @@ namespace ResiduosBackend.Data
             modelBuilder.Entity<Inventario>()
                 .HasIndex(i => new { i.PerfilId, i.ItemId })
                 .IsUnique();
+
+            modelBuilder.Entity<PerfilLogro>()
+                .HasKey(pl => new { pl.PerfilId, pl.LogroId });
+
+            modelBuilder.Entity<PerfilLogro>()
+                .HasOne(pl => pl.Perfil)
+                .WithMany(p => p.LogrosDesbloqueados)
+                .HasForeignKey(pl => pl.PerfilId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<PerfilLogro>()
+                .HasOne(pl => pl.Logro)
+                .WithMany(l => l.PerfilesLogro)
+                .HasForeignKey(pl => pl.LogroId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Logro>().HasData(
+                new Logro
+                {
+                    Id = 1,
+                    Nombre = "Reciclador Novato",
+                    Descripcion = "Alcanza 100 XP acumulada.",
+                    ImagenUrl = "logros/reciclador-novato.png",
+                    RequisitoXP = 100
+                },
+                new Logro
+                {
+                    Id = 2,
+                    Nombre = "Guardian del Planeta",
+                    Descripcion = "Alcanza 500 XP acumulada.",
+                    ImagenUrl = "logros/guardian-planeta.png",
+                    RequisitoXP = 500
+                },
+                new Logro
+                {
+                    Id = 3,
+                    Nombre = "Maestro del Reciclaje",
+                    Descripcion = "Alcanza 1000 XP acumulada.",
+                    ImagenUrl = "logros/maestro-reciclaje.png",
+                    RequisitoXP = 1000
+                }
+            );
         }
     }
 }

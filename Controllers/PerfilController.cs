@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using ResiduosBackend.DTO;
 using ResiduosBackend.Interfaces;
 
@@ -65,10 +66,13 @@ public class PerfilController : ControllerBase
     /// Actualiza monedas, experiencia y estrellas tras un minijuego (RF-103, RN-704). El <paramref name="id"/> de ruta debe coincidir con <see cref="ActualizarProgresoDTO.PerfilId"/>.
     /// </summary>
     [HttpPut("{id}/progreso")]
+    [Authorize]
     public async Task<IActionResult> ActualizarProgreso(int id, ActualizarProgresoDTO dto)
     {
         if (id != dto.PerfilId)
             return BadRequest(new { mensaje = "El ID del perfil no coincide con el cuerpo de la solicitud." });
+        if (dto.XpGanado < 0 || dto.FichasGanadas < 0 || dto.EstrellasGanadas < 0)
+            return BadRequest(new { mensaje = "Los incrementos de progreso no pueden ser negativos." });
 
         var perfilActualizado = await _perfilService.ActualizarProgresoAsync(id, dto);
         if (perfilActualizado == null)
@@ -88,6 +92,7 @@ public class PerfilController : ControllerBase
     /// Elimina un perfil (RN-202). La confirmación en interfaz corresponde al cliente.
     /// </summary>
     [HttpDelete("{id}")]
+    [Authorize]
     public async Task<IActionResult> EliminarPerfil(int id)
     {
         var eliminado = await _perfilService.EliminarPerfilAsync(id);
