@@ -92,7 +92,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseExceptionHandler();
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 
 // La política CORS debe ejecutarse antes de MapControllers para que aplique a todas las rutas de la API.
 app.UseCors("AllowUnityApp");
